@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+fdate=`date +'%Y%m%d_%H%M%S'`
+
+# Redirect stdout ( > ) into a named pipe ( >() ) running "tee"
+exec > >(tee $(dirname $0)/logs/backup_${fdate}.log)
+
+# Without this, only stdout would be captured - i.e. your
+# log file would not contain any error messages.
+# SEE answer by Adam Spiers, which keeps STDERR a seperate stream -
+# I did not want to steal from him by simply adding his answer to mine.
+exec 2>&1
+
+BDATE=`/bin/date "+%Y.%m.%d %H:%M:%S"`
+START=$(date +%s.%N)
+  $(dirname $0)/backup.sh $1
+  #echo "   ...command runing...   "
+  #sleep 5s
+END=$(date +%s.%N)
+DIFF=$(echo "$END - $START" | bc)
+echo "Begin time is: $BDATE."
+echo "Delta time $DIFF sec. In HH:MM:SS is: "`date -u -d @${DIFF} +"%T"`
+echo "  End time is: "`/bin/date "+%Y.%m.%d %H:%M:%S"`
+
+grep -v '^+' $(dirname $0)/logs/backup_${fdate}.log > $(dirname $0)/logs/backup_${fdate}.out
+
+mailx -s "Backup log MI on ${HOSTNAME} ${fdate}" -a "$(dirname $0)/logs/backup_${fdate}.log" tserkowny@gmail.com < "$(dirname $0)/logs/backup_${fdate}.out"

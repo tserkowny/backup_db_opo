@@ -1,0 +1,6 @@
+#!/bin/bash
+BACKUPDIR=/opt/backup
+FILES=7
+mkdir -p $BACKUPDIR
+cd $BACKUPDIR/ && ls -r1 $BACKUPDIR/ | tail -n +$(($FILES+1)) | xargs --no-run-if-empty rm
+cd - >/dev/null

@@ -1,0 +1,21 @@
+Reading schemas for database mi
+Backuping to /opt/backups/db/MI_20260430.tar.gz... 
+ ...finished!
+Delete arch dirs
+Move /opt/backups/db/MI_20260430.tar.gz...
+ ...finished!
+
+list 1 files for deleting:
+
+MI_20260422.tar.gz
+
+
+list 1 files for deleting:
+
+MI_20260422.tar.gz
+
+deleted success
+
+Begin time is: 2026.04.30 19:45:01.
+Delta time 6.182934560 sec. In HH:MM:SS is: 00:00:06
+  End time is: 2026.04.30 19:45:08

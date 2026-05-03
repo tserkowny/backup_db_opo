@@ -1,0 +1,715 @@
+++ dirname /usr/local/sbin/backup.sh
++ LOCK=/usr/local/sbin/backup.lock
++ '[' -f /usr/local/sbin/backup.lock ']'
++ echo 228750
++ trap ctrl_c SIGHUP SIGINT SIGTERM
+++ dirname /usr/local/sbin/backup.sh
++ . /usr/local/sbin/backup.conf
+++ LAST_FILES=11
++++ /bin/date +%Y%m%d
+++ DATE=20260430
+++ BACKUP_PAT=/opt/backups/db/
+++ BACKUP_DIR=/opt/backups/db/MI_20260430
+++ BACKUP_TO_TGZ=1
+++ BACKUP_DIR_DEL=1
+++ BACKUP_MOV=1
+++ BACKUP_DEL=0
+++ declare -A BACKUPS
+++ TARGS=--one-file-system
+++ BACKUP_NUM=11
+++ PGDBS=mi
+++ PG_DIR=pgsql
+++ MY_DIR=mysql
+++ DB_PERIOD=11
+++ MD5_CHCK=0
+++ RSYNC_COPY=0
+++ RSYNC_DEST=bbackup@example.com:foobar/
+++ RSYNC_USER=bbackup
+++ SCP_COPY=0
+++ SCP_USER=bbackup
+++ SCP_SERVER=sshserver.example.com
+++ SCP_DIR=/path/to/scpcopy/dir
+++ FS_COPY=0
+++ FS_DIR=/opt/backups/db_local
++ BACKUP_DIR_PARAM=
++ '[' -n '' ']'
+++ uname
++ UNAME=Linux
++ case $UNAME in
++ MD5SUM_CMD=md5sum
++ PG_USER=postgres
++ MD5SUM_BIN=
++ check_util md5sum MD5SUM_BIN
++ UTIL=md5sum
+++ which md5sum
++ UTIL_PATH=/usr/bin/md5sum
++ '[' -z /usr/bin/md5sum ']'
++ '[' -n MD5SUM_BIN ']'
++ eval MD5SUM_BIN=/usr/bin/md5sum
+++ MD5SUM_BIN=/usr/bin/md5sum
++ '[' 0 -eq 0 ']'
++ MD5SUM_BIN=/bin/echo
++ CHECK_UTILS=()
++ '[' -n mi ']'
++ CHECK_UTILS+=('/usr/pgsql-17/bin/pg_dump')
++ '[' -n '' ']'
++ '[' 0 -eq 1 ']'
++ '[' 0 -eq 1 ']'
++ for UTIL in "${CHECK_UTILS[@]}"
++ check_util /usr/pgsql-17/bin/pg_dump
++ UTIL=/usr/pgsql-17/bin/pg_dump
+++ which /usr/pgsql-17/bin/pg_dump
++ UTIL_PATH=/usr/pgsql-17/bin/pg_dump
++ '[' -z /usr/pgsql-17/bin/pg_dump ']'
++ '[' -n '' ']'
++ CHECK_PARAMS=()
++ '[' 0 -eq 1 ']'
++ '[' 0 -eq 1 ']'
++ '[' 0 -eq 1 ']'
++ '[' -n mi ']'
++ test -d /opt/backups/db/MI_20260430/pgsql
++ mkdir -p -m 755 /opt/backups/db/MI_20260430/pgsql
++ for DB in $PGDBS
++ echo 'Reading schemas for database mi'
+Reading schemas for database mi
++ set +x
++ for DB_SCHEMA in $DB_SCHEMAS
+++ date +%s.%N
++ BCKP_START=1777567501.960031538
++ su -l postgres -c 'pg_dump -n vcp mi'
++ gzip
+++ date +%s.%N
++ BCKP_END=1777567502.073989008
+++ echo '1777567502.073989008 - 1777567501.960031538'
+++ awk '{printf "%f\n", $0}'
+++ bc
++ BCKP_DIFF=0.113957
++ '[' 0 -eq 1 ']'
++ '[' 0 -eq 1 ']'
++ for DB_SCHEMA in $DB_SCHEMAS
+++ date +%s.%N
++ BCKP_START=1777567502.076920521
++ su -l postgres -c 'pg_dump -n abac mi'
++ gzip
+++ date +%s.%N
++ BCKP_END=1777567502.192697015
+++ echo '1777567502.192697015 - 1777567502.076920521'
+++ bc
+++ awk '{printf "%f\n", $0}'
++ BCKP_DIFF=0.115776
++ '[' 0 -eq 1 ']'
++ '[' 0 -eq 1 ']'
++ for DB_SCHEMA in $DB_SCHEMAS
+++ date +%s.%N
++ BCKP_START=1777567502.196223708
++ gzip
++ su -l postgres -c 'pg_dump -n summary mi'
+++ date +%s.%N
++ BCKP_END=1777567502.316809684
+++ echo '1777567502.316809684 - 1777567502.196223708'
+++ awk '{printf "%f\n", $0}'
+++ bc
++ BCKP_DIFF=0.120586
++ '[' 0 -eq 1 ']'
++ '[' 0 -eq 1 ']'
++ for DB_SCHEMA in $DB_SCHEMAS
+++ date +%s.%N
++ BCKP_START=1777567502.319565308
++ su -l postgres -c 'pg_dump -n utils mi'
++ gzip
+++ date +%s.%N
++ BCKP_END=1777567502.446921257
+++ echo '1777567502.446921257 - 1777567502.319565308'
+++ awk '{printf "%f\n", $0}'
+++ bc
++ BCKP_DIFF=0.127356
++ '[' 0 -eq 1 ']'
++ '[' 0 -eq 1 ']'
++ for DB_SCHEMA in $DB_SCHEMAS
+++ date +%s.%N
++ BCKP_START=1777567502.449637480
++ su -l postgres -c 'pg_dump -n back mi'
++ gzip
+++ date +%s.%N
++ BCKP_END=1777567502.560466779
+++ echo '1777567502.560466779 - 1777567502.449637480'
+++ bc
+++ awk '{printf "%f\n", $0}'
++ BCKP_DIFF=0.110829
++ '[' 0 -eq 1 ']'
++ '[' 0 -eq 1 ']'
++ for DB_SCHEMA in $DB_SCHEMAS
+++ date +%s.%N
++ BCKP_START=1777567502.563428226
++ su -l postgres -c 'pg_dump -n bm mi'
++ gzip
+++ date +%s.%N
++ BCKP_END=1777567502.685063384
+++ echo '1777567502.685063384 - 1777567502.563428226'
+++ awk '{printf "%f\n", $0}'
+++ bc
++ BCKP_DIFF=0.121635
++ '[' 0 -eq 1 ']'
++ '[' 0 -eq 1 ']'
++ for DB_SCHEMA in $DB_SCHEMAS
+++ date +%s.%N
++ BCKP_START=1777567502.687636137
++ su -l postgres -c 'pg_dump -n cloning mi'
++ gzip
+++ date +%s.%N
++ BCKP_END=1777567502.804330174
+++ echo '1777567502.804330174 - 1777567502.687636137'
+++ bc
+++ awk '{printf "%f\n", $0}'
++ BCKP_DIFF=0.116694
++ '[' 0 -eq 1 ']'
++ '[' 0 -eq 1 ']'
++ for DB_SCHEMA in $DB_SCHEMAS
+++ date +%s.%N
++ BCKP_START=1777567502.807814941
++ su -l postgres -c 'pg_dump -n webapi mi'
++ gzip
+++ date +%s.%N
++ BCKP_END=1777567502.933660149
+++ echo '1777567502.933660149 - 1777567502.807814941'
+++ awk '{printf "%f\n", $0}'
+++ bc
++ BCKP_DIFF=0.125845
++ '[' 0 -eq 1 ']'
++ '[' 0 -eq 1 ']'
++ for DB_SCHEMA in $DB_SCHEMAS
+++ date +%s.%N
++ BCKP_START=1777567502.936420217
++ su -l postgres -c 'pg_dump -n dm mi'
++ gzip
+++ date +%s.%N
++ BCKP_END=1777567503.057147955
+++ echo '1777567503.057147955 - 1777567502.936420217'
+++ awk '{printf "%f\n", $0}'
+++ bc
++ BCKP_DIFF=0.120728
++ '[' 0 -eq 1 ']'
++ '[' 0 -eq 1 ']'
++ for DB_SCHEMA in $DB_SCHEMAS
+++ date +%s.%N
++ BCKP_START=1777567503.059955804
++ su -l postgres -c 'pg_dump -n glossary mi'
++ gzip
+++ date +%s.%N
++ BCKP_END=1777567503.434993530
+++ echo '1777567503.434993530 - 1777567503.059955804'
+++ bc
+++ awk '{printf "%f\n", $0}'
++ BCKP_DIFF=0.375038
++ '[' 0 -eq 1 ']'
++ '[' 0 -eq 1 ']'
++ for DB_SCHEMA in $DB_SCHEMAS
+++ date +%s.%N
++ BCKP_START=1777567503.438039267
++ su -l postgres -c 'pg_dump -n koob_f mi'
++ gzip
+++ date +%s.%N
++ BCKP_END=1777567503.552225920
+++ echo '1777567503.552225920 - 1777567503.438039267'
+++ bc
+++ awk '{printf "%f\n", $0}'
++ BCKP_DIFF=0.114187
++ '[' 0 -eq 1 ']'
++ '[' 0 -eq 1 ']'
++ for DB_SCHEMA in $DB_SCHEMAS
+++ date +%s.%N
++ BCKP_START=1777567503.555696802
++ su -l postgres -c 'pg_dump -n lpe mi'
++ gzip
+++ date +%s.%N
++ BCKP_END=1777567503.703410349
+++ echo '1777567503.703410349 - 1777567503.555696802'
+++ awk '{printf "%f\n", $0}'
+++ bc
++ BCKP_DIFF=0.147714
++ '[' 0 -eq 1 ']'
++ '[' 0 -eq 1 ']'
++ for DB_SCHEMA in $DB_SCHEMAS
+++ date +%s.%N
++ BCKP_START=1777567503.706319599
++ su -l postgres -c 'pg_dump -n mdm mi'
++ gzip
+++ date +%s.%N
++ BCKP_END=1777567503.831076404
+++ echo '1777567503.831076404 - 1777567503.706319599'
+++ awk '{printf "%f\n", $0}'
+++ bc
++ BCKP_DIFF=0.124757
++ '[' 0 -eq 1 ']'
++ '[' 0 -eq 1 ']'
++ for DB_SCHEMA in $DB_SCHEMAS
+++ date +%s.%N
++ BCKP_START=1777567503.833964350
++ su -l postgres -c 'pg_dump -n messenger mi'
++ gzip
+++ date +%s.%N
++ BCKP_END=1777567503.942650554
+++ echo '1777567503.942650554 - 1777567503.833964350'
+++ awk '{printf "%f\n", $0}'
+++ bc
++ BCKP_DIFF=0.108686
++ '[' 0 -eq 1 ']'
++ '[' 0 -eq 1 ']'
++ for DB_SCHEMA in $DB_SCHEMAS
+++ date +%s.%N
++ BCKP_START=1777567503.945665546
++ su -l postgres -c 'pg_dump -n meta mi'
++ gzip
+++ date +%s.%N
++ BCKP_END=1777567504.055317542
+++ echo '1777567504.055317542 - 1777567503.945665546'
+++ awk '{printf "%f\n", $0}'
+++ bc
++ BCKP_DIFF=0.109652
++ '[' 0 -eq 1 ']'
++ '[' 0 -eq 1 ']'
++ for DB_SCHEMA in $DB_SCHEMAS
+++ date +%s.%N
++ BCKP_START=1777567504.057911234
++ su -l postgres -c 'pg_dump -n mgrt mi'
++ gzip
+++ date +%s.%N
++ BCKP_END=1777567504.183252777
+++ echo '1777567504.183252777 - 1777567504.057911234'
+++ bc
+++ awk '{printf "%f\n", $0}'
++ BCKP_DIFF=0.125342
++ '[' 0 -eq 1 ']'
++ '[' 0 -eq 1 ']'
++ for DB_SCHEMA in $DB_SCHEMAS
+++ date +%s.%N
++ BCKP_START=1777567504.186058746
++ su -l postgres -c 'pg_dump -n nls mi'
++ gzip
+++ date +%s.%N
++ BCKP_END=1777567504.302835205
+++ echo '1777567504.302835205 - 1777567504.186058746'
+++ bc
+++ awk '{printf "%f\n", $0}'
++ BCKP_DIFF=0.116776
++ '[' 0 -eq 1 ']'
++ '[' 0 -eq 1 ']'
++ for DB_SCHEMA in $DB_SCHEMAS
+++ date +%s.%N
++ BCKP_START=1777567504.306397059
++ su -l postgres -c 'pg_dump -n portal mi'
++ gzip
+++ date +%s.%N
++ BCKP_END=1777567504.436347279
+++ echo '1777567504.436347279 - 1777567504.306397059'
+++ bc
+++ awk '{printf "%f\n", $0}'
++ BCKP_DIFF=0.129950
++ '[' 0 -eq 1 ']'
++ '[' 0 -eq 1 ']'
++ for DB_SCHEMA in $DB_SCHEMAS
+++ date +%s.%N
++ BCKP_START=1777567504.439336236
++ su -l postgres -c 'pg_dump -n public mi'
++ gzip
+++ date +%s.%N
++ BCKP_END=1777567504.549722721
+++ echo '1777567504.549722721 - 1777567504.439336236'
+++ awk '{printf "%f\n", $0}'
+++ bc
++ BCKP_DIFF=0.110386
++ '[' 0 -eq 1 ']'
++ '[' 0 -eq 1 ']'
++ for DB_SCHEMA in $DB_SCHEMAS
+++ date +%s.%N
++ BCKP_START=1777567504.553001759
++ su -l postgres -c 'pg_dump -n push_1_0 mi'
++ gzip
+++ date +%s.%N
++ BCKP_END=1777567504.674925233
+++ echo '1777567504.674925233 - 1777567504.553001759'
+++ bc
+++ awk '{printf "%f\n", $0}'
++ BCKP_DIFF=0.121923
++ '[' 0 -eq 1 ']'
++ '[' 0 -eq 1 ']'
++ for DB_SCHEMA in $DB_SCHEMAS
+++ date +%s.%N
++ BCKP_START=1777567504.677744545
++ su -l postgres -c 'pg_dump -n space mi'
++ gzip
+++ date +%s.%N
++ BCKP_END=1777567504.790669588
+++ echo '1777567504.790669588 - 1777567504.677744545'
+++ awk '{printf "%f\n", $0}'
+++ bc
++ BCKP_DIFF=0.112925
++ '[' 0 -eq 1 ']'
++ '[' 0 -eq 1 ']'
++ for DB_SCHEMA in $DB_SCHEMAS
+++ date +%s.%N
++ BCKP_START=1777567504.793722260
++ su -l postgres -c 'pg_dump -n sync mi'
++ gzip
+++ date +%s.%N
++ BCKP_END=1777567504.912301573
+++ echo '1777567504.912301573 - 1777567504.793722260'
+++ awk '{printf "%f\n", $0}'
+++ bc
++ BCKP_DIFF=0.118579
++ '[' 0 -eq 1 ']'
++ '[' 0 -eq 1 ']'
++ for DB_SCHEMA in $DB_SCHEMAS
+++ date +%s.%N
++ BCKP_START=1777567504.915292654
++ su -l postgres -c 'pg_dump -n sync_1_0 mi'
++ gzip
+++ date +%s.%N
++ BCKP_END=1777567505.023653988
+++ echo '1777567505.023653988 - 1777567504.915292654'
+++ awk '{printf "%f\n", $0}'
+++ bc
++ BCKP_DIFF=0.108361
++ '[' 0 -eq 1 ']'
++ '[' 0 -eq 1 ']'
++ for DB_SCHEMA in $DB_SCHEMAS
+++ date +%s.%N
++ BCKP_START=1777567505.026403796
++ su -l postgres -c 'pg_dump -n syncapi mi'
++ gzip
+++ date +%s.%N
++ BCKP_END=1777567505.137422263
+++ echo '1777567505.137422263 - 1777567505.026403796'
+++ bc
+++ awk '{printf "%f\n", $0}'
++ BCKP_DIFF=0.111018
++ '[' 0 -eq 1 ']'
++ '[' 0 -eq 1 ']'
++ for DB_SCHEMA in $DB_SCHEMAS
+++ date +%s.%N
++ BCKP_START=1777567505.141025040
++ su -l postgres -c 'pg_dump -n tm mi'
++ gzip
+++ date +%s.%N
++ BCKP_END=1777567505.269006357
+++ echo '1777567505.269006357 - 1777567505.141025040'
+++ awk '{printf "%f\n", $0}'
+++ bc
++ BCKP_DIFF=0.127981
++ '[' 0 -eq 1 ']'
++ '[' 0 -eq 1 ']'
++ for DB_SCHEMA in $DB_SCHEMAS
+++ date +%s.%N
++ BCKP_START=1777567505.271821397
++ su -l postgres -c 'pg_dump -n webapi_delete mi'
++ gzip
+++ date +%s.%N
++ BCKP_END=1777567505.380390632
+++ echo '1777567505.380390632 - 1777567505.271821397'
+++ awk '{printf "%f\n", $0}'
+++ bc
++ BCKP_DIFF=0.108569
++ '[' 0 -eq 1 ']'
++ '[' 0 -eq 1 ']'
++ for DB_SCHEMA in $DB_SCHEMAS
+++ date +%s.%N
++ BCKP_START=1777567505.383180286
++ su -l postgres -c 'pg_dump -n webapi_get mi'
++ gzip
+++ date +%s.%N
++ BCKP_END=1777567505.496598875
+++ echo '1777567505.496598875 - 1777567505.383180286'
+++ awk '{printf "%f\n", $0}'
+++ bc
++ BCKP_DIFF=0.113419
++ '[' 0 -eq 1 ']'
++ '[' 0 -eq 1 ']'
++ for DB_SCHEMA in $DB_SCHEMAS
+++ date +%s.%N
++ BCKP_START=1777567505.499614986
++ su -l postgres -c 'pg_dump -n webapi_head mi'
++ gzip
+++ date +%s.%N
++ BCKP_END=1777567505.613052371
+++ echo '1777567505.613052371 - 1777567505.499614986'
+++ bc
+++ awk '{printf "%f\n", $0}'
++ BCKP_DIFF=0.113437
++ '[' 0 -eq 1 ']'
++ '[' 0 -eq 1 ']'
++ for DB_SCHEMA in $DB_SCHEMAS
+++ date +%s.%N
++ BCKP_START=1777567505.616478898
++ su -l postgres -c 'pg_dump -n webapi_lib_2_0 mi'
++ gzip
+++ date +%s.%N
++ BCKP_END=1777567505.751754999
+++ echo '1777567505.751754999 - 1777567505.616478898'
+++ awk '{printf "%f\n", $0}'
+++ bc
++ BCKP_DIFF=0.135276
++ '[' 0 -eq 1 ']'
++ '[' 0 -eq 1 ']'
++ for DB_SCHEMA in $DB_SCHEMAS
+++ date +%s.%N
++ BCKP_START=1777567505.754666226
++ su -l postgres -c 'pg_dump -n webapi_lib_3_0 mi'
++ gzip
+++ date +%s.%N
++ BCKP_END=1777567505.867551970
+++ echo '1777567505.867551970 - 1777567505.754666226'
+++ bc
+++ awk '{printf "%f\n", $0}'
++ BCKP_DIFF=0.112886
++ '[' 0 -eq 1 ']'
++ '[' 0 -eq 1 ']'
++ for DB_SCHEMA in $DB_SCHEMAS
+++ date +%s.%N
++ BCKP_START=1777567505.870598709
++ su -l postgres -c 'pg_dump -n webapi_patch mi'
++ gzip
+++ date +%s.%N
++ BCKP_END=1777567505.983915809
+++ echo '1777567505.983915809 - 1777567505.870598709'
+++ awk '{printf "%f\n", $0}'
+++ bc
++ BCKP_DIFF=0.113317
++ '[' 0 -eq 1 ']'
++ '[' 0 -eq 1 ']'
++ for DB_SCHEMA in $DB_SCHEMAS
+++ date +%s.%N
++ BCKP_START=1777567505.986787512
++ su -l postgres -c 'pg_dump -n webapi_post mi'
++ gzip
+++ date +%s.%N
++ BCKP_END=1777567506.111557860
+++ echo '1777567506.111557860 - 1777567505.986787512'
+++ awk '{printf "%f\n", $0}'
+++ bc
++ BCKP_DIFF=0.124770
++ '[' 0 -eq 1 ']'
++ '[' 0 -eq 1 ']'
++ for DB_SCHEMA in $DB_SCHEMAS
+++ date +%s.%N
++ BCKP_START=1777567506.114117627
++ su -l postgres -c 'pg_dump -n webapi_put mi'
++ gzip
+++ date +%s.%N
++ BCKP_END=1777567506.211221977
+++ echo '1777567506.211221977 - 1777567506.114117627'
+++ awk '{printf "%f\n", $0}'
+++ bc
++ BCKP_DIFF=0.097104
++ '[' 0 -eq 1 ']'
++ '[' 0 -eq 1 ']'
++ for DB_SCHEMA in $DB_SCHEMAS
+++ date +%s.%N
++ BCKP_START=1777567506.213733860
++ su -l postgres -c 'pg_dump -n webapi_utils mi'
++ gzip
+++ date +%s.%N
++ BCKP_END=1777567506.320160834
+++ echo '1777567506.320160834 - 1777567506.213733860'
+++ awk '{printf "%f\n", $0}'
+++ bc
++ BCKP_DIFF=0.106427
++ '[' 0 -eq 1 ']'
++ '[' 0 -eq 1 ']'
++ for DB_SCHEMA in $DB_SCHEMAS
+++ date +%s.%N
++ BCKP_START=1777567506.322645780
++ su -l postgres -c 'pg_dump -n adm mi'
++ gzip
+++ date +%s.%N
++ BCKP_END=1777567506.449642889
+++ echo '1777567506.449642889 - 1777567506.322645780'
+++ bc
+++ awk '{printf "%f\n", $0}'
++ BCKP_DIFF=0.126997
++ '[' 0 -eq 1 ']'
++ '[' 0 -eq 1 ']'
++ for DB_SCHEMA in $DB_SCHEMAS
+++ date +%s.%N
++ BCKP_START=1777567506.452389253
++ su -l postgres -c 'pg_dump -n audit mi'
++ gzip
+++ date +%s.%N
++ BCKP_END=1777567506.557832239
+++ echo '1777567506.557832239 - 1777567506.452389253'
+++ awk '{printf "%f\n", $0}'
+++ bc
++ BCKP_DIFF=0.105443
++ '[' 0 -eq 1 ']'
++ '[' 0 -eq 1 ']'
++ for DB_SCHEMA in $DB_SCHEMAS
+++ date +%s.%N
++ BCKP_START=1777567506.560325827
++ su -l postgres -c 'pg_dump -n databoring mi'
++ gzip
+++ date +%s.%N
++ BCKP_END=1777567506.665692999
+++ echo '1777567506.665692999 - 1777567506.560325827'
+++ awk '{printf "%f\n", $0}'
+++ bc
++ BCKP_DIFF=0.105367
++ '[' 0 -eq 1 ']'
++ '[' 0 -eq 1 ']'
++ for DB_SCHEMA in $DB_SCHEMAS
+++ date +%s.%N
++ BCKP_START=1777567506.668180528
++ su -l postgres -c 'pg_dump -n ds_global mi'
++ gzip
+++ date +%s.%N
++ BCKP_END=1777567506.794111270
+++ echo '1777567506.794111270 - 1777567506.668180528'
+++ bc
+++ awk '{printf "%f\n", $0}'
++ BCKP_DIFF=0.125931
++ '[' 0 -eq 1 ']'
++ '[' 0 -eq 1 ']'
++ for DB_SCHEMA in $DB_SCHEMAS
+++ date +%s.%N
++ BCKP_START=1777567506.797121213
++ su -l postgres -c 'pg_dump -n ds_import_stat mi'
++ gzip
+++ date +%s.%N
++ BCKP_END=1777567506.928344938
+++ echo '1777567506.928344938 - 1777567506.797121213'
+++ awk '{printf "%f\n", $0}'
+++ bc
++ BCKP_DIFF=0.131224
++ '[' 0 -eq 1 ']'
++ '[' 0 -eq 1 ']'
++ for DB_SCHEMA in $DB_SCHEMAS
+++ date +%s.%N
++ BCKP_START=1777567506.930881981
++ su -l postgres -c 'pg_dump -n ds_license mi'
++ gzip
+++ date +%s.%N
++ BCKP_END=1777567507.057347713
+++ echo '1777567507.057347713 - 1777567506.930881981'
+++ awk '{printf "%f\n", $0}'
+++ bc
++ BCKP_DIFF=0.126466
++ '[' 0 -eq 1 ']'
++ '[' 0 -eq 1 ']'
++ for DB_SCHEMA in $DB_SCHEMAS
+++ date +%s.%N
++ BCKP_START=1777567507.059990018
++ su -l postgres -c 'pg_dump -n ds_master_5_0 mi'
++ gzip
+++ date +%s.%N
++ BCKP_END=1777567507.192215229
+++ echo '1777567507.192215229 - 1777567507.059990018'
+++ awk '{printf "%f\n", $0}'
+++ bc
++ BCKP_DIFF=0.132225
++ '[' 0 -eq 1 ']'
++ '[' 0 -eq 1 ']'
++ for DB_SCHEMA in $DB_SCHEMAS
+++ date +%s.%N
++ BCKP_START=1777567507.194711873
++ su -l postgres -c 'pg_dump -n ds_res mi'
++ gzip
+++ date +%s.%N
++ BCKP_END=1777567507.438778528
+++ awk '{printf "%f\n", $0}'
+++ bc
+++ echo '1777567507.438778528 - 1777567507.194711873'
++ BCKP_DIFF=0.244067
++ '[' 0 -eq 1 ']'
++ '[' 0 -eq 1 ']'
++ for DB_SCHEMA in $DB_SCHEMAS
+++ date +%s.%N
++ BCKP_START=1777567507.441247559
++ su -l postgres -c 'pg_dump -n koob mi'
++ gzip
+++ date +%s.%N
++ BCKP_END=1777567507.556573034
+++ echo '1777567507.556573034 - 1777567507.441247559'
+++ awk '{printf "%f\n", $0}'
+++ bc
++ BCKP_DIFF=0.115325
++ '[' 0 -eq 1 ']'
++ '[' 0 -eq 1 ']'
++ for DB_SCHEMA in $DB_SCHEMAS
+++ date +%s.%N
++ BCKP_START=1777567507.559222251
++ su -l postgres -c 'pg_dump -n otp mi'
++ gzip
+++ date +%s.%N
++ BCKP_END=1777567507.669741890
+++ echo '1777567507.669741890 - 1777567507.559222251'
+++ awk '{printf "%f\n", $0}'
+++ bc
++ BCKP_DIFF=0.110520
++ '[' 0 -eq 1 ']'
++ '[' 0 -eq 1 ']'
++ for DB_SCHEMA in $DB_SCHEMAS
+++ date +%s.%N
++ BCKP_START=1777567507.672404162
++ su -l postgres -c 'pg_dump -n rbac mi'
++ gzip
+++ date +%s.%N
++ BCKP_END=1777567507.796857957
+++ echo '1777567507.796857957 - 1777567507.672404162'
+++ awk '{printf "%f\n", $0}'
+++ bc
++ BCKP_DIFF=0.124454
++ '[' 0 -eq 1 ']'
++ '[' 0 -eq 1 ']'
++ for DB_SCHEMA in $DB_SCHEMAS
+++ date +%s.%N
++ BCKP_START=1777567507.799887694
++ su -l postgres -c 'pg_dump -n ds_infosec mi'
++ gzip
+++ date +%s.%N
++ BCKP_END=1777567507.942984934
+++ echo '1777567507.942984934 - 1777567507.799887694'
+++ awk '{printf "%f\n", $0}'
+++ bc
++ BCKP_DIFF=0.143097
++ '[' 0 -eq 1 ']'
++ '[' 0 -eq 1 ']'
++ find /opt/backups/db/MI_20260430/pgsql/ -name 'mi-*.sql.gz' -mtime +11 -exec rm '{}' ';'
++ '[' -n '' ']'
++ '[' 0 -eq 1 ']'
++ '[' 1 -eq 1 ']'
++ echo 'Backuping to /opt/backups/db/MI_20260430.tar.gz... '
+Backuping to /opt/backups/db/MI_20260430.tar.gz... 
++ cd /opt/backups/db/MI_20260430
++ tar -zcf /opt/backups/db/MI_20260430.tar.gz .
++ echo ' ...finished!'
+ ...finished!
++ '[' 1 -eq 1 ']'
++ echo 'Delete arch dirs'
+Delete arch dirs
++ rm -rf /opt/backups/db/MI_20260430
++ '[' 1 -eq 1 ']'
++ echo 'Move /opt/backups/db/MI_20260430.tar.gz...'
+Move /opt/backups/db/MI_20260430.tar.gz...
++ cp /opt/backups/db/MI_20260430.tar.gz /opt/backups/db_local
++ '[' 0 -eq 1 ']'
++ echo ' ...finished!'
+ ...finished!
++ '[' 0 -eq 1 ']'
+++ dirname /usr/local/sbin/backup.sh
++ /usr/local/sbin/lastfiles.sh v
+
+list 1 files for deleting:
+
+MI_20260422.tar.gz
+
+++ dirname /usr/local/sbin/backup.sh
++ /usr/local/sbin/lastfiles.sh d
+
+list 1 files for deleting:
+
+MI_20260422.tar.gz
+
+deleted success
+
++ rm /usr/local/sbin/backup.lock
+Begin time is: 2026.04.30 19:45:01.
+Delta time 6.182934560 sec. In HH:MM:SS is: 00:00:06
+  End time is: 2026.04.30 19:45:08

@@ -1,0 +1,395 @@
+#!/bin/bash -x
+
+#################################
+
+LOCK=$(dirname $0)/backup.lock
+if [ -f $LOCK ]; then
+    echo Backuping is already running\!
+    exit 6
+fi
+# create lock-file
+#/bin/touch $LOCK
+echo $$ > $LOCK
+
+#set -e # exit on any error
+# trap ctrl-c and call ctrl_c()
+function ctrl_c() {
+    rm -rf $BACKUP_DIR
+    rm -rf $BACKUP_DIR.tar.gz
+    rm $LOCK
+    echo
+    echo -e "** Выполнение прервано по CTRL-C"
+    stty sane
+    exit
+}
+#trap - SIGINT # default handler
+trap ctrl_c SIGHUP SIGINT SIGTERM
+
+#################################
+# BEGIN do some work
+
+# Загрузка конфигурации (файл backup.conf должен находится в том же каталоге, что и скрипт backup.sh)
+. $(dirname $0)/backup.conf
+
+# Указываем директорию архивации из командной строки
+BACKUP_DIR_PARAM="$1"
+if [ -n "$BACKUP_DIR_PARAM" ]
+then
+    echo "Backup directory use from command line [ $BACKUP_DIR_PARAM ]"
+    BACKUP_DIR=$BACKUP_DIR_PARAM/$DATE
+fi
+
+# информируем с какими параметрами запущена архивация
+#echo "$0 run with next parameters:"
+#echo " BACKUP_TO_TGZ: $BACKUP_TO_TGZ"
+#echo "BACKUP_DIR_DEL: $BACKUP_DIR_DEL"
+#echo "      MD5_CHCK: $MD5_CHCK"
+#echo "    RSYNC_COPY: $RSYNC_COPY"
+#echo "      SCP_COPY: $SCP_COPY"
+#echo "       FS_COPY: $FS_COPY"
+#echo
+
+################################################
+################################################
+#
+# Процедуры и функции
+#
+# Процедура проверки наличия утилиты (с помощью команды which)
+# Обязательный первый параметр - имя утилиты
+# Если задано имя переменной (второй параметр), тогда в нее положим значение пути к утилите
+check_util()
+{
+    UTIL=$1
+    UTIL_PATH=`which $UTIL`
+    if [ -z "$UTIL_PATH" ]
+    then
+        echo "No $UTIL utility found in PATH ($PATH), please install it or correct PATH"
+        exit 1
+    fi
+    if [ -n "$2" ]
+    then
+        eval "$2=$UTIL_PATH"
+    fi
+}
+
+# Копирование по scp
+# Получаем первым параметром путь к файлу, вторым - директорию, в которую его надо скопировать на удаленном сервере
+scp_copy()
+{
+    FPATH=$1
+    DIR=$2
+    DEST="${SCP_USER}@${SCP_SERVER}:$DIR"
+    echo "SCP copy $FPATH to $DEST"
+    su -m $SCP_USER -c "scp -qr $FPATH $DEST"
+}
+
+# Копирование в локальную (или смонтированную) директорию
+fs_copy()
+{
+    FPATH=$1
+    DIR=$2
+    test -d "$DIR" || mkdir -p -m 755 "$DIR"
+    echo "LOCAL FS copy $FPATH to $DIR"
+    cp -a $FPATH $DIR
+}
+
+#
+# Конец процедур и функций
+#
+################################################
+################################################
+
+# Определим систему, на которой работаем
+# Скрипт работает в системе Linux и FreeBSD
+# В зависимости от системы, выставляем значения переменных:
+# PG_USER - пользователь, от которого будет запущен бекап базы (postgres или pgsql)
+# MD5SUM_CMD - имя команды, которую будем запускать для получения md5 файлов (md5sum или md5)
+UNAME=`uname`
+case $UNAME in
+"Linux")
+    MD5SUM_CMD='md5sum'
+    PG_USER='postgres'
+    ;;  
+"FreeBSD")
+    MD5SUM_CMD='md5'
+    PG_USER='pgsql'
+    ;;  
+*)
+    echo "Unknown system $UNAME, please, contact script developers"
+    exit 1
+    ;;  
+esac
+
+# Вычислим путь к утилите md5
+# Она разная в linux и freebsd
+# Также здесь проверим наличие самой утилиты
+MD5SUM_BIN=''
+check_util $MD5SUM_CMD 'MD5SUM_BIN'
+if [ $MD5_CHCK -eq 0 ]; then MD5SUM_BIN='/bin/echo'; fi
+
+# Проверим наличие нужных утилит pg_dump и mysqldump, а также rsync
+# Проверяем соответствующую утилиту, только если будем ее в дальнейшем использовать
+CHECK_UTILS=()
+if [ -n "$PGDBS" ]; then CHECK_UTILS+=('/opt/pgpro/std-13/bin/pg_dump'); fi
+#if [ -n "$PGDBS" ]; then CHECK_UTILS+=('pg_dump'); fi
+if [ -n "$MYDBS" ]; then CHECK_UTILS+=('mysqldump'); fi
+if [ $RSYNC_COPY -eq 1 ]; then CHECK_UTILS+=('rsync'); fi
+if [ $SCP_COPY -eq 1 ]; then CHECK_UTILS+=('scp'); fi
+for UTIL in "${CHECK_UTILS[@]}"
+do
+    check_util $UTIL
+done
+
+# Проверяем корректность настроек
+# Если задано копирование по scp, например, проверим, что все параметры заданы
+CHECK_PARAMS=()
+if [ $RSYNC_COPY -eq 1 ]; then CHECK_PARAMS+=('RSYNC_USER' 'RSYNC_DEST'); fi
+if [ $SCP_COPY -eq 1 ]; then CHECK_PARAMS+=('SCP_USER' 'SCP_SERVER' 'SCP_DIR'); fi
+if [ $FS_COPY -eq 1 ]; then CHECK_PARAMS+=('FS_DIR'); fi
+for PARAM in "${CHECK_PARAMS[@]}"
+do
+    PARAM_VAL=${!PARAM}
+    if [ -z $PARAM_VAL ]
+    then
+        echo "Parameter $PARAM is not set (required in this configuration), please, correct your configuration"
+        exit 1
+    fi
+done
+
+# Бэкап баз PostgreSQL
+# Если задана хоть одна база, тогда проверим существование директории для бекапов
+# Если ее нет - создадим
+if [ -n "$PGDBS" ]
+then
+    test -d "$BACKUP_DIR/$PG_DIR" || mkdir -p -m 755 "$BACKUP_DIR/$PG_DIR"
+fi
+for DB in $PGDBS
+do
+    echo "Reading schemas for database $DB"
+set +x
+    DB_SCHEMAS=$(su -l postgres -c "/opt/pgpro/std-15/bin/psql -tc \"select schema_name from information_schema.schemata where catalog_name='$DB' and schema_owner<>'postgres';\" $DB")
+set -x
+
+    for DB_SCHEMA in $DB_SCHEMAS
+    do
+
+#echo "$DB_SCHEMA:"
+BCKP_START=$(date +%s.%N)
+#        echo "    backing up schema $DB_SCHEMA into $BACKUP_DIR/$PG_DIR/$DB-$DB_SCHEMA-$DATE.sql.gz"
+	su -l postgres -c "pg_dump -n $DB_SCHEMA $DB" | gzip > $BACKUP_DIR/$PG_DIR/$DB-$DB_SCHEMA-$DATE.sql.gz
+BCKP_END=$(date +%s.%N)
+BCKP_DIFF=$(echo "$BCKP_END - $BCKP_START" | bc | awk '{printf "%f\n", $0}')
+#echo
+
+        # SCP копирование
+        if [ $SCP_COPY -eq 1 ]; then scp_copy "$BACKUP_DIR/$PG_DIR/$DB-$DB_SCHEMA-$DATE.sql.gz" "$SCP_DIR/$PG_DIR/"; fi
+
+        # FS копирование
+        if [ $FS_COPY -eq 1 ]; then fs_copy "$BACKUP_DIR/$PG_DIR/$DB-$DB_SCHEMA-$DATE.sql.gz" "$FS_DIR/$PG_DIR/"; fi
+    done
+
+    # Удалим старые бекапы баз
+    find $BACKUP_DIR/$PG_DIR/ -name "$DB-*.sql.gz" -mtime +$DB_PERIOD -exec rm {} \;
+done
+
+# Бэкап баз MySQL
+# Если задана хоть одна база, тогда проверим существование директории для бекапов
+# Если ее нет - создадим
+if [ -n "$MYDBS" ]
+then
+    test -d "$BACKUP_DIR/$MY_DIR" || mkdir -p -m 755 "$BACKUP_DIR/$MY_DIR"
+fi
+for DB in $MYDBS
+do
+    echo "Backing up MySQL database $DB into $BACKUP_DIR/$MY_DIR/$DB-$DATE.sql.gz"
+    mysqldump --user="$MYUSER" --password="$MYPASS" $DB > $BACKUP_DIR/$MY_DIR/$DB-$DATE.sql
+    gzip -f $BACKUP_DIR/$MY_DIR/$DB-$DATE.sql
+
+    # SCP копирование
+    if [ $SCP_COPY -eq 1 ]; then scp_copy "$BACKUP_DIR/$MY_DIR/$DB-$DATE.sql.gz" "$SCP_DIR/$MY_DIR/"; fi
+
+    # FS копирование
+    if [ $FS_COPY -eq 1 ]; then fs_copy "$BACKUP_DIR/$MY_DIR/$DB-$DATE.sql.gz" "$FS_DIR/$MY_DIR/"; fi
+
+    # Удалим старые бекапы баз
+    find $BACKUP_DIR/$MY_DIR/ -name "$DB-*.sql.gz" -mtime +$DB_PERIOD -exec rm {} \;
+done
+
+# Бэкап директорий
+# Делаем бекап полный
+# И к нему md5
+for d in "${!BACKUPS[@]}"
+do
+#    echo "Backing up $d ==> ${BACKUPS[$d]} into $BACKUP_DIR/$d/${d}_$DATE.tgz"
+    if ! [ -d "$BACKUP_DIR/$d" ]
+    then
+        mkdir -p -m 755 "$BACKUP_DIR/$d"
+    fi
+
+    # Файл исключений - создаем временный, из элементов массива, и потом удаляем
+    # Имя нужного нам массива
+    ARRAYNAME=EXCLUDES_$d[@]
+
+    ARRAYNAME2=INCLUDES_$d[@]
+
+    # Это чтобы bash не обрабатывал *
+    GLOBIGNORE='*'
+
+    # Массив исключений, извлекаем содержимое, имея имя переменной
+    # Круглые скобки указывают на то, что хотим получить массив. 
+    # без них получим строку с элементами через пробел
+    EXCLUDES=(${!ARRAYNAME})
+
+    INCLUDES=(${!ARRAYNAME2})
+
+    # Создадим временный файл исключений, его передадим команде tar
+    # Это нужно потому, что bash, перед тем как передать параметры команде tar, при подстановке переменных
+    # встретит в исключениях '*'  развернет ее в список файлов, причем в рабочей директории, а не в той, в которой будет работать tar
+    # то есть список исключений не сработает
+    touch $BACKUP_DIR/$d/${d}_excludes
+    for e in ${EXCLUDES[*]}; do echo $e >> $BACKUP_DIR/$d/${d}_excludes; done
+
+    touch $BACKUP_DIR/$d/${d}_includes
+    for i in ${INCLUDES[*]}; do echo $i >> $BACKUP_DIR/$d/${d}_includes; done
+
+    # В зависимости от того, какая система, немного по-разному обработаем вывод команды tar
+    # Это связано с тем, что вывод команды tar при использовании ключа -v различается в этих системах
+    # В linux это просто список файлов
+    # Во FreeBSD это список файлов с добавлением "a" (append) в начале и без первого слеша, причем в STDERR
+    # Этот самый слеш добавим, а также уберем "a"
+    case $UNAME in
+    "FreeBSD")
+        tar -X $BACKUP_DIR/$d/${d}_excludes -T $BACKUP_DIR/$d/${d}_includes $TARGS -zpcvf $BACKUP_DIR/$d/${d}_$DATE.tgz ${BACKUPS[$d]} 2>&1 | sed 's/^../\//' | xargs -I '{}' sh -c "test -f '{}' && $MD5SUM_BIN '{}'" | tee $BACKUP_DIR/$d/${d}_$DATE.md5 > /dev/null 2>&1
+        ;;
+    "Linux")
+        tar -X $BACKUP_DIR/$d/${d}_excludes -T $BACKUP_DIR/$d/${d}_includes $TARGS -zpcvf $BACKUP_DIR/$d/${d}_$DATE.tgz ${BACKUPS[$d]} | xargs -I '{}' sh -c "test -f '{}' && $MD5SUM_BIN '{}'" | tee $BACKUP_DIR/$d/${d}_$DATE.md5 > /dev/null 2>&1
+        ;;
+    esac
+    rm -f $BACKUP_DIR/$d/${d}_excludes
+    rm -f $BACKUP_DIR/$d/${d}_includes
+    # Уберем значение *
+    GLOBIGNORE=''
+
+    # MD5 суммирование
+    if [ $MD5_CHCK -eq 1 ]; then MD5SUM=`$MD5SUM_BIN "$BACKUP_DIR/$d/${d}_$DATE.md5" | cut -f 1 -d ' '`; fi
+
+    # SCP копирование
+    if [ $SCP_COPY -eq 1 ]; then scp_copy "$BACKUP_DIR/$d/${d}_$DATE.tgz" "$SCP_DIR/$d/"; fi
+    if [ $SCP_COPY -eq 1 ]; then scp_copy "$BACKUP_DIR/$d/${d}_$DATE.md5" "$SCP_DIR/$d/"; fi
+
+    # FS копирование
+    if [ $FS_COPY -eq 1 ]; then fs_copy "$BACKUP_DIR/$d/${d}_$DATE.tgz" "$FS_DIR/$d/"; fi
+    if [ $FS_COPY -eq 1 ]; then fs_copy "$BACKUP_DIR/$d/${d}_$DATE.md5" "$FS_DIR/$d/"; fi
+
+    # Пройдемся по всем предыдущим архивам (не считая этого)
+    # Найдем одинаковые и удалим один из них
+    for i in `ls -1 -t $BACKUP_DIR/$d/${d}_*.md5`
+    do
+        # Если это новый файл, тогда его пропускаем
+        if [ "$i" = "$BACKUP_DIR/$d/${d}_$DATE.md5" ]; then continue; fi
+
+        # Если этот файл уже удалили - пропускаем
+        if ! [ -f $i ]; then continue; fi
+
+        # Интересуют только файлы с новым MD5
+        # Оставим только два последних файла с одинаковым md5
+        IMD5SUM=`$MD5SUM_BIN $i | cut -f 1 -d ' '`
+        if [ "$IMD5SUM" != "$MD5SUM" ]; then continue; fi
+
+        # Итак, здесь файлы с MD5SUM, равной MD5SUM нового файла
+        for j in `ls -1 -t -r $BACKUP_DIR/$d/${d}_*.md5`
+        do
+            # Не сравниваем сам с собой
+            if [ "$i" = "$j" ]; then continue; fi
+
+            # Пропускаем новый файл
+            if [ "$j" = "$BACKUP_DIR/$d/${d}_$DATE.md5" ]; then continue; fi
+
+            # Сравним md5 файлов
+            JMD5SUM=`$MD5SUM_BIN $j | cut -f 1 -d ' '`
+
+            # Если суммы равны, тогда удалим более ранний
+            if [ "$JMD5SUM" = "$IMD5SUM" ]
+            then
+                FILE_BASE=${j%%????}
+                echo "Removing $j and $FILE_BASE.tgz"
+                rm -f $j
+                rm -f $FILE_BASE.tgz
+            fi
+        done
+    done
+done
+
+# Посчитаем архивы и оставим последние 10
+# Сортируем по дате модификации (по умолчанию в убывающем порядке)
+for BP in "${!BACKUPS[@]}"
+do
+    COUNT=0;
+    for i in `ls -1 -t $BACKUP_DIR/$BP/${BP}_*.tgz`
+    do
+        COUNT=$(($COUNT+1))
+        if [ $COUNT -gt $BACKUP_NUM ]
+        then
+			$md5file=$(basename $i .tgz).md5
+            echo "Removing archive file $i and $md5file"
+            rm $i $md5file
+        fi
+    done
+done
+
+# Копируем файлы с помощью rsync
+if [ $RSYNC_COPY -eq 1 ]
+then
+    su -m $RSYNC_USER -c "rsync -aq --delete $BACKUP_DIR/database $RSYNC_DEST"
+    for f in "${!BACKUPS[@]}"
+    do
+        su -m $RSYNC_USER -c "rsync -aq --delete $BACKUP_DIR/$f $RSYNC_DEST"
+    done
+fi
+
+# Закатываем всё в один архив tgz...
+if [ $BACKUP_TO_TGZ -eq 1 ]
+then
+    echo "Backuping to $BACKUP_DIR.tar.gz... "
+#    tar -zcvf $BACKUP_DIR.tar.gz $BACKUP_DIR
+    (cd $BACKUP_DIR && tar -zcf $BACKUP_DIR.tar.gz .)
+    #chown $RSYNC_USER:$RSYNC_USER $BACKUP_DIR.tar.gz
+    echo " ...finished!"
+    # ...и удаляем каталоги
+    if [ $BACKUP_DIR_DEL -eq 1 ]
+    then
+        echo "Delete arch dirs"
+        rm -rf $BACKUP_DIR
+    fi
+fi
+
+# Переносим монолитный архив
+if [ $BACKUP_MOV -eq 1 ]
+then
+    echo "Move $BACKUP_DIR.tar.gz... "
+    cp $BACKUP_DIR.tar.gz $FS_DIR
+#    scp $BACKUP_DIR.tar.gz papin@bi:/opt/backups/opo/
+    if [ $? -eq 1 ]
+    then
+        echo " ...NOT finished! Error copy to $FS_DIR"
+        echo -r reg@rav.spb.ru -s "Error copy to $FS_DIR" support@yasp.ru
+    else
+        echo " ...finished!"
+        # ...и удаляем tgz
+        if [ $BACKUP_DEL -eq 1 ]
+        then
+            echo "Delete tgz"
+            rm -rf $BACKUP_DIR.tar.gz
+        fi
+    fi
+fi
+
+$(dirname $0)/lastfiles.sh v
+$(dirname $0)/lastfiles.sh d
+
+# END do some work
+#################################
+
+# delete lock-file
+rm $LOCK
+#################################

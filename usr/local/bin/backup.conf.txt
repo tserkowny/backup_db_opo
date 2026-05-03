@@ -1,0 +1,125 @@
+#!/bin/bash
+
+################################################
+################################################
+#
+# Конфигурационные параметры
+#
+
+LAST_FILES=11
+
+# Сегодняшняя дата и время бекапов
+#DATE=`/bin/date "+%Y%m%d_%H%M%S"`
+DATE=`/bin/date "+%Y%m%d"`
+# Директория, в которую будем складывать бекапы
+BACKUP_PAT="/opt/backups/opo/"
+BACKUP_DIR="${BACKUP_PAT}OPO_${DATE}"
+# Архивировать в tar.gz
+BACKUP_TO_TGZ=1
+# Удалять каталог с архивами?
+BACKUP_DIR_DEL=1
+# Перенести после создания
+BACKUP_MOV=0
+# Удаление после переноса
+BACKUP_DEL=0
+
+# Директории, которые надо бекапить
+# Для каждой директории прописываем элемент массива BACKUPS имя — директория
+# Заданные директории будут бекапиться в /home/bbackup/имя(ключ)/имя_YYYY-MM-DD.tgz
+declare -A BACKUPS
+BACKUPS[conf]='/opt/luxmsbi/conf'
+BACKUPS[web]='/opt/luxmsbi/web'
+#BACKUPS[etc]='/etc'
+#BACKUPS[pgpro15]='/var/lib/pgpro/std-15/data'
+#BACKUPS[pgpro13]='/etc/postgresql/13/main'
+#BACKUPS[opt]='/opt'
+#BACKUPS[etc]='/etc'
+#BACKUPS[cron]='/var/spool/cron'
+#BACKUPS[homedoro]='/home/doro/BI/IAMStorageService'
+#BACKUPS[homepapin]='/home/papin'
+#BACKUPS[varlibpg]='/var/lib/pgsql'
+
+# Исключения по директориям (что НЕ копировать)
+# Формат: EXCLUDES_имя_ключа_массива_BACKUPS
+# Каждая такая переменная является массивом (не ассоциативным),
+# Если ничего не надо исключать, переменную можно не заводить
+#EXCLUDES_opt=('opt/bu opt/bckp opt/lib/pgsql opt/BI/loader/data/ti/sqlite opt/BI/loader/data/ti.mirror/sqlite opt/static/bidata' \
+#              '*/spbtiles*/*' '*/log/*' '*/logs/*' '*/tmp/*' \
+#              'opt/mapnik-v2.2.0' \
+#              'opt/mysql-libs-5.1.69-1.el6_4.x86_64' \
+#              'opt/osm2pgsql' \
+#              'opt/tcpdump' \
+#              "$BACKUP_DIR")
+#EXCLUDES_homedoro=('*/*.sql' '*/*.tar.gz' '*/*.tgz' '*/*.sqlite')
+EXCLUDES_web=('*.gz' '*/*.tar.gz' '*/*.tgz')
+#EXCLUDES_varlibpg=('/var/lib/pgsql/9.4/data/*/*' \
+#                   '/var/lib/pgsql/9.4/backups' '/var/lib/pgsql/lost+found' '/var/lib/pgsql/test' '/var/lib/pgsql/dumpall.sql')
+
+#EXCLUDES_homepapin=('/home/papin/*/*')
+#INCLUDES_homepapin=('/home/papin/miac.xml')
+#INCLUDES_homepapin=('4.txt')
+#EXCLUDES_pgpro15=('/var/lib/pgpro/std-15/data/*/*' '/var/lib/pgpro/std-15/data/base' '/var/lib/pgpro/std-15/data/pg_wal' '/var/lib/pgpro/std-15/data/log')
+
+# Дополнительные параметры для команды tar (помимо -zpcvf)
+TARGS="--one-file-system"
+
+# Какое количество экземпляров разных бекапов файлов хранить на диске
+# Храним 11 - 10 разных и два последних одинаковых (если они есть)
+BACKUP_NUM=11
+
+# Базы которые, надо бекапить
+# PostgreSQL базы
+# перечисляем через пробел
+# при отсутствии необходимости бэкапа оставляем значение в кавычках пустым
+# Для резервных копий автоматически создаются подкаталоги, заданные в параметрах PG_DIR и MY_DIR
+# если задана хоть одна дата для бекапирования
+#PGDBS='mi mi_test'
+PGDBS=''
+# Директория внутри BACKUP_DIR, в которую складываем бекапы PostgreSQL
+# путь относительный
+PG_DIR='pgsql'
+
+# MySQL базы и параметры доступа к ним
+#MYDBS=
+#MYUSER=
+#MYPASS=
+# Директория внутри BACKUP_DIR, в которую складываем бекапы MySQL
+# путь относительный
+MY_DIR='mysql'
+
+# Количество дней, которые храним бекап баз
+DB_PERIOD=11
+
+# MD5 check
+MD5_CHCK=0
+
+# Параметры копирования бекапов на другие серверы и в другие директории
+# rsync, scp или локальное копирование в другую директорию
+# Можно использовать независимо друг от друга часть или все
+# Формат: XXX_COPY=[1|0], 1 - включает данный вид копирования
+# RSYNC_COPY
+RSYNC_COPY=0
+# Сервер, на который копируем файлы и директория в нем
+RSYNC_DEST='bbackup@example.com:foobar/'
+# Пользователь, от которого мы будем локально запускать копирование файлов с сервера на сервер. 
+# Нужен для того, чтобы четко знать, откуда брать ключ доступа по ssh
+RSYNC_USER='bbackup'
+
+# Копирование по scp
+SCP_COPY=0
+# Пользователь, от которого запустим scp. Нужен для того, чтобы использовать публичный ключ для доступа
+SCP_USER="bbackup"
+# Сервер, на который копируем файлы и директория на нем
+SCP_SERVER="sshserver.example.com"
+SCP_DIR="/path/to/scpcopy/dir"
+
+# Копирование на локальную ФС
+FS_COPY=0
+# Директория, в которую копируем файлы
+FS_DIR="/opt/backups/opo_local"
+
+#
+# Конец конфигурационных параметров
+#
+################################################
+################################################

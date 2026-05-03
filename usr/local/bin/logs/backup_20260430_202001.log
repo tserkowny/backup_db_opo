@@ -1,0 +1,166 @@
+++ dirname /usr/local/bin/backup.sh
++ LOCK=/usr/local/bin/backup.lock
++ '[' -f /usr/local/bin/backup.lock ']'
++ echo 231351
++ trap ctrl_c SIGHUP SIGINT SIGTERM
+++ dirname /usr/local/bin/backup.sh
++ . /usr/local/bin/backup.conf
+++ LAST_FILES=11
++++ /bin/date +%Y%m%d
+++ DATE=20260430
+++ BACKUP_PAT=/opt/backups/opo/
+++ BACKUP_DIR=/opt/backups/opo/OPO_20260430
+++ BACKUP_TO_TGZ=1
+++ BACKUP_DIR_DEL=1
+++ BACKUP_MOV=0
+++ BACKUP_DEL=0
+++ declare -A BACKUPS
+++ BACKUPS[conf]=/opt/luxmsbi/conf
+++ BACKUPS[web]=/opt/luxmsbi/web
+++ EXCLUDES_web=('*.gz' '*/*.tar.gz' '*/*.tgz')
+++ TARGS=--one-file-system
+++ BACKUP_NUM=11
+++ PGDBS=
+++ PG_DIR=pgsql
+++ MY_DIR=mysql
+++ DB_PERIOD=11
+++ MD5_CHCK=0
+++ RSYNC_COPY=0
+++ RSYNC_DEST=bbackup@example.com:foobar/
+++ RSYNC_USER=bbackup
+++ SCP_COPY=0
+++ SCP_USER=bbackup
+++ SCP_SERVER=sshserver.example.com
+++ SCP_DIR=/path/to/scpcopy/dir
+++ FS_COPY=0
+++ FS_DIR=/opt/backups/opo_local
++ BACKUP_DIR_PARAM=
++ '[' -n '' ']'
+++ uname
++ UNAME=Linux
++ case $UNAME in
++ MD5SUM_CMD=md5sum
++ PG_USER=postgres
++ MD5SUM_BIN=
++ check_util md5sum MD5SUM_BIN
++ UTIL=md5sum
+++ which md5sum
++ UTIL_PATH=/usr/bin/md5sum
++ '[' -z /usr/bin/md5sum ']'
++ '[' -n MD5SUM_BIN ']'
++ eval MD5SUM_BIN=/usr/bin/md5sum
+++ MD5SUM_BIN=/usr/bin/md5sum
++ '[' 0 -eq 0 ']'
++ MD5SUM_BIN=/bin/echo
++ CHECK_UTILS=()
++ '[' -n '' ']'
++ '[' -n '' ']'
++ '[' 0 -eq 1 ']'
++ '[' 0 -eq 1 ']'
++ CHECK_PARAMS=()
++ '[' 0 -eq 1 ']'
++ '[' 0 -eq 1 ']'
++ '[' 0 -eq 1 ']'
++ '[' -n '' ']'
++ '[' -n '' ']'
++ for d in "${!BACKUPS[@]}"
++ '[' -d /opt/backups/opo/OPO_20260430/conf ']'
++ mkdir -p -m 755 /opt/backups/opo/OPO_20260430/conf
++ ARRAYNAME='EXCLUDES_conf[@]'
++ ARRAYNAME2='INCLUDES_conf[@]'
++ GLOBIGNORE='*'
++ EXCLUDES=(${!ARRAYNAME})
++ INCLUDES=(${!ARRAYNAME2})
++ touch /opt/backups/opo/OPO_20260430/conf/conf_excludes
++ touch /opt/backups/opo/OPO_20260430/conf/conf_includes
++ case $UNAME in
++ tar -X /opt/backups/opo/OPO_20260430/conf/conf_excludes -T /opt/backups/opo/OPO_20260430/conf/conf_includes --one-file-system -zpcvf /opt/backups/opo/OPO_20260430/conf/conf_20260430.tgz /opt/luxmsbi/conf
++ xargs -I '{}' sh -c 'test -f '\''{}'\'' && /bin/echo '\''{}'\'''
++ tee /opt/backups/opo/OPO_20260430/conf/conf_20260430.md5
+tar: Removing leading `/' from member names
+tar: Removing leading `/' from hard link targets
++ rm -f /opt/backups/opo/OPO_20260430/conf/conf_excludes
++ rm -f /opt/backups/opo/OPO_20260430/conf/conf_includes
++ GLOBIGNORE=
++ '[' 0 -eq 1 ']'
++ '[' 0 -eq 1 ']'
++ '[' 0 -eq 1 ']'
++ '[' 0 -eq 1 ']'
++ '[' 0 -eq 1 ']'
+++ ls -1 -t /opt/backups/opo/OPO_20260430/conf/conf_20260430.md5
++ for i in `ls -1 -t $BACKUP_DIR/$d/${d}_*.md5`
++ '[' /opt/backups/opo/OPO_20260430/conf/conf_20260430.md5 = /opt/backups/opo/OPO_20260430/conf/conf_20260430.md5 ']'
++ continue
++ for d in "${!BACKUPS[@]}"
++ '[' -d /opt/backups/opo/OPO_20260430/web ']'
++ mkdir -p -m 755 /opt/backups/opo/OPO_20260430/web
++ ARRAYNAME='EXCLUDES_web[@]'
++ ARRAYNAME2='INCLUDES_web[@]'
++ GLOBIGNORE='*'
++ EXCLUDES=(${!ARRAYNAME})
++ INCLUDES=(${!ARRAYNAME2})
++ touch /opt/backups/opo/OPO_20260430/web/web_excludes
++ for e in ${EXCLUDES[*]}
++ echo '*.gz'
++ for e in ${EXCLUDES[*]}
++ echo '*/*.tar.gz'
++ for e in ${EXCLUDES[*]}
++ echo '*/*.tgz'
++ touch /opt/backups/opo/OPO_20260430/web/web_includes
++ case $UNAME in
++ tar -X /opt/backups/opo/OPO_20260430/web/web_excludes -T /opt/backups/opo/OPO_20260430/web/web_includes --one-file-system -zpcvf /opt/backups/opo/OPO_20260430/web/web_20260430.tgz /opt/luxmsbi/web
++ tee /opt/backups/opo/OPO_20260430/web/web_20260430.md5
++ xargs -I '{}' sh -c 'test -f '\''{}'\'' && /bin/echo '\''{}'\'''
+tar: Removing leading `/' from member names
+tar: Removing leading `/' from hard link targets
++ rm -f /opt/backups/opo/OPO_20260430/web/web_excludes
++ rm -f /opt/backups/opo/OPO_20260430/web/web_includes
++ GLOBIGNORE=
++ '[' 0 -eq 1 ']'
++ '[' 0 -eq 1 ']'
++ '[' 0 -eq 1 ']'
++ '[' 0 -eq 1 ']'
++ '[' 0 -eq 1 ']'
+++ ls -1 -t /opt/backups/opo/OPO_20260430/web/web_20260430.md5
++ for i in `ls -1 -t $BACKUP_DIR/$d/${d}_*.md5`
++ '[' /opt/backups/opo/OPO_20260430/web/web_20260430.md5 = /opt/backups/opo/OPO_20260430/web/web_20260430.md5 ']'
++ continue
++ for BP in "${!BACKUPS[@]}"
++ COUNT=0
+++ ls -1 -t /opt/backups/opo/OPO_20260430/conf/conf_20260430.tgz
++ for i in `ls -1 -t $BACKUP_DIR/$BP/${BP}_*.tgz`
++ COUNT=1
++ '[' 1 -gt 11 ']'
++ for BP in "${!BACKUPS[@]}"
++ COUNT=0
+++ ls -1 -t /opt/backups/opo/OPO_20260430/web/web_20260430.tgz
++ for i in `ls -1 -t $BACKUP_DIR/$BP/${BP}_*.tgz`
++ COUNT=1
++ '[' 1 -gt 11 ']'
++ '[' 0 -eq 1 ']'
++ '[' 1 -eq 1 ']'
++ echo 'Backuping to /opt/backups/opo/OPO_20260430.tar.gz... '
+Backuping to /opt/backups/opo/OPO_20260430.tar.gz... 
++ cd /opt/backups/opo/OPO_20260430
++ tar -zcf /opt/backups/opo/OPO_20260430.tar.gz .
++ echo ' ...finished!'
+ ...finished!
++ '[' 1 -eq 1 ']'
++ echo 'Delete arch dirs'
+Delete arch dirs
++ rm -rf /opt/backups/opo/OPO_20260430
++ '[' 0 -eq 1 ']'
+++ dirname /usr/local/bin/backup.sh
++ /usr/local/bin/lastfiles.sh v
+
+files for deleting not found
+
+++ dirname /usr/local/bin/backup.sh
++ /usr/local/bin/lastfiles.sh d
+
+files for deleting not found
+
++ rm /usr/local/bin/backup.lock
+Begin time is: 2026.04.30 20:20:01.
+Delta time 6.922996007 sec. In HH:MM:SS is: 00:00:06
+  End time is: 2026.04.30 20:20:08

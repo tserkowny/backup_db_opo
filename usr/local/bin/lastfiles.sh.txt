@@ -1,0 +1,68 @@
+#!/bin/bash
+
+# Загрузка конфигурации (файл backup.conf должен находится в том же каталоге, что и скрипт backup.sh)
+. "$(dirname $0)/backup.conf"
+
+#mkdir -p $BACKUP_PAT
+BASE_CMD="cd $BACKUP_PAT/ && ls -r1 $BACKUP_PAT/ | tail -n +$(($LAST_FILES+1))"
+FAST_CMD="cd $BACKUP_FAT/ && ls -r1 $BACKUP_FAT/ | tail -n +$(($FAST_FILES+1))"
+FILESMSG=$(eval "$BASE_CMD | xargs --no-run-if-empty -n1 echo")
+[[ -z  $FILESMSG ]] && FILESNUM=0 || FILESNUM=$(echo $FILESMSG | wc -l)
+case $1 in
+    "d" | "del" | "delete")
+        $0 v
+        re='^[0-9]+$'
+        if ! [[ $FILESNUM =~ $re ]] ; then
+            echo "error: env var FILESNUM not a number" >&2; exit 1
+        fi
+        # If the value is not necessarily an integer, consider amending the regex appropriately;
+        #                      for instance:  ^[0-9]+([.][0-9]+)?$
+        # ...or, to handle negative numbers:  ^-?[0-9]+([.][0-9]+)?$
+        [[ $FILESNUM -eq 0 ]] && exit 0
+        eval "$BASE_CMD | xargs --no-run-if-empty rm"
+        cd - &>/dev/null
+        echo "deleted success"
+        echo
+        ;;
+    "fd" | "fastdel" | "fastdelete")
+        $0 v
+        re='^[0-9]+$'
+        if ! [[ $FILESNUM =~ $re ]] ; then
+            echo "error: env var FILESNUM not a number" >&2; exit 1
+        fi
+        # If the value is not necessarily an integer, consider amending the regex appropriately;
+        #                      for instance:  ^[0-9]+([.][0-9]+)?$
+        # ...or, to handle negative numbers:  ^-?[0-9]+([.][0-9]+)?$
+        [[ $FILESNUM -eq 0 ]] && exit 0
+        eval "$FAST_CMD | xargs --no-run-if-empty rm"
+        cd - &>/dev/null
+        echo "deleted success"
+        echo
+        ;;
+    "v" | "view")
+        echo
+        if [ $FILESNUM = 0 ]; then
+            echo "files for deleting not found"
+        else
+            echo "list $FILESNUM files for deleting:"
+            echo
+            echo "$FILESMSG"
+        fi
+        echo
+        cd - &>/dev/null
+        ;;
+    ""|"help")
+        echo
+        echo "use: $0 [ view | del ]"
+        echo
+        echo "          view - only view files must be deleted"
+        echo "          del  - delete files using env var LAST_FILES"
+        echo
+        ;;
+    *)
+        echo
+        echo "unknown commands: $*"
+        echo
+        $0
+        ;;
+esac

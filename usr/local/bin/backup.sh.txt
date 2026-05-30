@@ -262,7 +262,7 @@ do
         tar -X $BACKUP_DIR/$d/${d}_excludes -T $BACKUP_DIR/$d/${d}_includes $TARGS -zpcvf $BACKUP_DIR/$d/${d}_$DATE.tgz ${BACKUPS[$d]} 2>&1 | sed 's/^../\//' | xargs -I '{}' sh -c "test -f '{}' && $MD5SUM_BIN '{}'" | tee $BACKUP_DIR/$d/${d}_$DATE.md5 > /dev/null 2>&1
         ;;
     "Linux")
-        tar -X $BACKUP_DIR/$d/${d}_excludes -T $BACKUP_DIR/$d/${d}_includes $TARGS -zpcvf $BACKUP_DIR/$d/${d}_$DATE.tgz ${BACKUPS[$d]} | xargs -I '{}' sh -c "test -f '{}' && $MD5SUM_BIN '{}'" | tee $BACKUP_DIR/$d/${d}_$DATE.md5 > /dev/null 2>&1
+        tar -X $BACKUP_DIR/$d/${d}_excludes -T $BACKUP_DIR/$d/${d}_includes $TARGS -zPpcvf $BACKUP_DIR/$d/${d}_$DATE.tgz ${BACKUPS[$d]} | xargs -I '{}' sh -c "test -f '{}' && $MD5SUM_BIN '{}'" | tee $BACKUP_DIR/$d/${d}_$DATE.md5 > /dev/null 2>&1
         ;;
     esac
     rm -f $BACKUP_DIR/$d/${d}_excludes
